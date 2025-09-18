@@ -1,89 +1,94 @@
 <template>
   <div class="container py-4">
     <!-- Header row -->
-<div class="d-flex justify-content-between align-items-end mb-3 w-100">
-  <!-- Left side: image + title + buttons -->
-  <div class="d-flex align-items-start gap-3">
-    <!-- Image upload (edit mode only, card-style like in PropertyList) -->
-    <div v-if="mode === 'edit'">
-  <div
-    class="property-image-wrapper d-flex align-items-center justify-content-center bg-light rounded"
-    style="width: 142px; height: 142px; position: relative; overflow: hidden;"
-  >
-    <!-- Image -->
-    <img
-      v-if="form.image_url && !uploading"
-      :src="form.image_url"
-      class="img-fluid rounded"
-      style="object-fit: cover; width: 100%; height: 100%;"
-      alt="Property"
-    />
+    <div class="d-flex justify-content-between align-items-end mb-3 w-100">
+      <!-- Left side: image + title + buttons -->
+      <div class="d-flex align-items-start gap-3">
+        <!-- Image upload (edit mode only, card-style like in PropertyList) -->
+        <div v-if="mode === 'edit'">
+          <div
+            class="property-image-wrapper d-flex align-items-center justify-content-center bg-light rounded"
+            style="width: 142px; height: 142px; position: relative; overflow: hidden;"
+          >
+            <!-- Image -->
+            <img
+              v-if="form.image_url && !uploading"
+              :src="form.image_url"
+              class="img-fluid rounded"
+              style="object-fit: cover; width: 100%; height: 100%;"
+              alt="Property"
+            />
 
-    <!-- Overlay button (always visible) -->
-    <div
-      class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-25"
-      style="cursor: pointer;"
-      @click="$refs.imageInput.click()"
-    >
-      <button class="upload-overlay-btn btn btn-outline-light btn-sm">
-        Upload a photo
-      </button>
-      <input
-        ref="imageInput"
-        type="file"
-        accept="image/jpeg, image/png, image/webp"
-        class="d-none"
-        @change="handleFileUpload"
-      />
-    </div>
+            <!-- Overlay button (always visible) -->
+            <div
+              class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-25"
+              style="cursor: pointer;"
+              @click="$refs.imageInput.click()"
+            >
+              <button class="upload-overlay-btn btn btn-outline-light btn-sm">
+                Upload a photo
+              </button>
+              <input
+                ref="imageInput"
+                type="file"
+                accept="image/jpeg, image/png, image/webp"
+                class="d-none"
+                @change="handleFileUpload"
+              />
+            </div>
 
-    <!-- Spinner -->
-    <div
-      v-if="uploading"
-      class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 rounded"
-    >
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Uploading...</span>
+            <!-- Spinner -->
+            <div
+              v-if="uploading"
+              class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 rounded"
+            >
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Uploading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Title + buttons stacked -->
+        <div class="d-flex flex-column gap-2 align-self-end">
+          <h4 class="mb-2">
+            <span v-if="mode === 'create'">New property</span>
+            <span v-else>Property Detail #{{ id }}</span>
+          </h4>
+
+          <!-- Address (edit mode only) -->
+          <p v-if="mode === 'edit'" class="text-muted mb-2">
+            {{ form.address || 'No address set' }}
+          </p>
+
+          <!-- Buttons row (edit mode only) -->
+          <div v-if="mode === 'edit'" class="d-flex gap-2">
+            <button class="btn btn btn-primary">Real estate</button>
+            <button class="btn btn btn-outline-secondary">Sell it yourself</button>
+            <button class="btn btn btn-success">Price map</button>
+          </div>
+        </div>
       </div>
+
+      <!-- Right side: back button -->
+      <router-link
+        v-if="mode === 'edit'"
+        to="/properties"
+        class="btn btn-outline-secondary"
+      >
+        Back to list
+      </router-link>
     </div>
-  </div>
-</div>
-
-    <!-- Title + buttons stacked -->
-    <div class="d-flex flex-column gap-2 align-self-end">
-      <h4 class="mb-2">
-        <span v-if="mode === 'create'">New property</span>
-        <span v-else>Property Detail #{{ id }}</span>
-      </h4>
-
-      <!-- Address (edit mode only) -->
-      <p v-if="mode === 'edit'" class="text-muted mb-2">
-        {{ form.address || 'No address set' }}
-      </p>
-
-      <!-- Buttons row (edit mode only) -->
-      <div v-if="mode === 'edit'" class="d-flex gap-2">
-        <button class="btn btn btn-primary">Real estate</button>
-        <button class="btn btn btn-outline-secondary">Sell it yourself</button>
-        <button class="btn btn btn-success">Price map</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right side: back button -->
-  <router-link
-    v-if="mode === 'edit'"
-    to="/properties"
-    class="btn btn-outline-secondary"
-  >
-    Back to list
-  </router-link>
-</div>
-
 
     <!-- Form -->
     <form @submit.prevent="handleSubmit">
       <div class="row g-3">
+        <!-- Title -->
+        <div class="col-12">
+          <label class="form-label">Title</label>
+          <input v-model="form.title" type="text" class="form-control" placeholder="Title" required />
+        </div>
+
         <!-- Address + Type -->
         <div class="col-md-6">
           <label class="form-label">Address</label>
@@ -170,7 +175,13 @@
       <!-- Image upload (new property only, placed at end) -->
       <div v-if="mode === 'create'" class="mb-3">
         <label class="form-label">Image</label>
-        <input type="file" class="form-control" @change="handleFileUpload" />
+        <input
+          ref="imageInput"
+          type="file"
+          accept="image/jpeg, image/png, image/webp"
+          class="form-control"
+          @change="handleFileUpload"
+        />
       </div>
 
       <!-- Save button -->

@@ -19,44 +19,43 @@
           <div class="row">
             <!-- 1. Image -->
             <div class="col-auto">
-  <div
-    class="property-image-wrapper d-flex align-items-center justify-content-center bg-light rounded position-relative"
-    style="width: 142px; height: 142px; overflow: hidden;"
-  >
-    <!-- Image preview -->
-    <img
-      v-if="property.image && !uploading[property.id]"
-      :src="property.image"
-      class="img-fluid rounded"
-      style="object-fit: cover; width: 100%; height: 100%;"
-      alt="Property"
-    />
+              <div
+                class="property-image-wrapper d-flex align-items-center justify-content-center bg-light rounded position-relative"
+                style="width: 142px; height: 142px; overflow: hidden;"
+              >
+                <!-- Image preview -->
+                <img
+                  v-if="property.image && !uploading[property.id]"
+                  :src="property.image"
+                  class="img-fluid rounded"
+                  style="object-fit: cover; width: 100%; height: 100%;"
+                  alt="Property"
+                />
 
-    <!-- Upload button (overlay) -->
-    <button
-      class="upload-overlay-btn btn btn-outline-light btn-sm"
-      @click="$refs[`fileInput-${property.id}`][0].click()"
-    >
-      Upload a photo
-    </button>
-    <input
-      type="file"
-      accept="image/jpeg, image/png, image/webp"
-      :ref="`fileInput-${property.id}`"
-      class="d-none"
-      @change="e => handleFileUpload(e, property.id)"
-    />
+                <!-- Upload button (overlay) -->
+                <button
+                  class="upload-overlay-btn btn btn-outline-light btn-sm"
+                  @click="$refs[`fileInput-${property.id}`][0].click()"
+                >
+                  Upload a photo
+                </button>
+                <input
+                  type="file"
+                  accept="image/jpeg, image/png, image/webp"
+                  :ref="`fileInput-${property.id}`"
+                  class="d-none"
+                  @change="e => handleFileUpload(e, property.id)"
+                />
 
-    <!-- Spinner overlay -->
-    <div
-      v-if="uploading[property.id]"
-      class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 rounded"
-    >
-      <LoadingSpinner />
-    </div>
-  </div>
-</div>
-
+                <!-- Spinner overlay -->
+                <div
+                  v-if="uploading[property.id]"
+                  class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 rounded"
+                >
+                  <LoadingSpinner />
+                </div>
+              </div>
+            </div>
 
             <!-- 2. Info -->
             <div class="col-5">
