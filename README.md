@@ -105,6 +105,27 @@ npm run dev
 * Runs at `http://localhost:5173`
 * Proxies API calls to backend at `http://localhost:8000`
 
+#### Local Development Setup:
+
+To run the frontend locally while the backend is running separately, make sure your backend API is accessible via `http://localhost:8000`. This can be configured in the `.env` file as mentioned above.
+
+1. Clone or download both the backend and frontend repositories.
+2. Make sure you’ve set up the **Django REST Framework API** with JWT authentication and it is running on `localhost:8000`.
+3. In the frontend directory:
+
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+   This will start the frontend on `http://localhost:5173`, and it will automatically proxy requests to `http://localhost:8000` for API calls.
+
+#### API Proxying (Local Development):
+
+The frontend will use Axios to make API calls, and all requests starting with `/api/` will be proxied to `http://localhost:8000`.
+
+If your backend API runs on a different port, update the `VITE_API_BASE_URL` in the `.env` file accordingly.
+
 ---
 
 ## 🐳 Dockerized Deployment
