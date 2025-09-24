@@ -4,7 +4,7 @@
     <div class="d-flex justify-content-between align-items-end mb-3 w-100">
       <!-- Left side: image + title + buttons -->
       <div class="d-flex align-items-start gap-3">
-        <!-- Image upload (edit mode only, card-style like in PropertyList) -->
+        <!-- Featured image upload (edit mode) -->
         <div v-if="mode === 'edit'">
           <div
             class="property-image-wrapper d-flex align-items-center justify-content-center bg-light rounded"
@@ -19,7 +19,7 @@
               alt="Property"
             />
 
-            <!-- Overlay button (always visible) -->
+            <!-- Overlay button (visible only on hover) -->
             <div
               class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-25"
               style="cursor: pointer;"
@@ -113,7 +113,13 @@
         </div>
         <div class="col-md-6">
           <label class="form-label">My price (CZK)</label>
-          <input v-model="form.price" type="number" step="0.01" class="form-control" placeholder="e.g. 3,200,000" />
+          <input
+            v-model="displayPrice"
+            type="text"
+            inputmode="numeric"
+            class="form-control"
+            placeholder="e.g. 3 200 000"
+          />
         </div>
       </div>
 
@@ -172,7 +178,7 @@
         </div>
       </div>
 
-      <!-- Image upload (new property only, placed at end) -->
+      <!-- Featured image (create mode) -->
       <div v-if="mode === 'create'" class="mb-3">
         <label class="form-label">Image</label>
         <input
@@ -184,7 +190,52 @@
         />
       </div>
 
-      <!-- Save button -->
+      <!-- Gallery images (edit mode only) -->
+      <div class="my-4">
+        <h5>Gallery images</h5>
+        <vue3-dropzone
+          id="property-gallery-dropzone"
+          v-model="galleryFiles"
+          v-model:previews="galleryPreviews"
+          :multiple="true"
+          accept="image/jpeg,image/png,image/webp"
+          :maxFiles="10"
+          :maxFileSize="10"
+          :showSelectButton="false"
+          @error="handleGalleryError"
+          @update:previews="syncRemovedImages"
+          selectFileStrategy="merge"
+          mode="edit"
+          imgWidth="150px"
+          imgHeight="150px"
+        >
+        </vue3-dropzone>
+
+        <!-- Preview newly added files -->
+        <div class="row mt-3 gap-2">
+          <div
+            v-for="(img, index) in form.images"
+            :key="img.id"
+            class="col-auto mb-3"
+            style="cursor: pointer;"
+            @click="showLightbox(index)"
+          >
+            <img
+              :src="fullImageUrl(img.image)"
+              alt="Gallery"
+              class="img-fluid rounded border"
+              style="object-fit: cover; width: 120px; height: 120px;"
+            />
+          </div>
+        </div>
+        <vue-easy-lightbox
+          :visible="lightboxVisible"
+          :imgs="form.images.map(img => fullImageUrl(img.image))"
+          :index="lightboxIndex"
+          @hide="lightboxVisible = false"
+        />
+      </div>
+
       <div class="mt-4 d-flex gap-2">
         <button class="btn btn-success" :disabled="loading">
           {{ mode === 'create' ? 'Save' : 'Save changes' }}
@@ -198,13 +249,18 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import api from '@/api/client'
+import Vue3Dropzone from '@/lib/vue3-dropzone/src/index.js'
+import '@/lib/vue3-dropzone/src/style.css'
+import VueEasyLightbox from 'vue-easy-lightbox'
 
 const props = defineProps({
   mode: { type: String, required: true },
   id: { type: String, default: null },
 })
+
+const components = { VueEasyLightbox }
 
 const form = reactive({
   address: '',
@@ -220,6 +276,7 @@ const form = reactive({
   comment: '',
   story: '',
   image_url: null,
+  images: [],
 })
 
 const loading = ref(false)
@@ -228,6 +285,38 @@ const selectedFile = ref(null)
 const uploading = ref(false)
 
 const MEDIA_BASE = import.meta.env.VITE_API_MEDIA_BASE_URL || 'http://localhost:8000/media/'
+
+const galleryFiles = ref([])
+const galleryPreviews = ref([])
+const existingImages = ref([])
+const removedImages = ref([])
+
+const lightboxVisible = ref(false)
+const lightboxIndex = ref(0)
+
+function showLightbox(index) {
+  console.log('Show lightbox at index', index)
+  lightboxIndex.value = index
+  lightboxVisible.value = true
+}
+
+// format price with spaces
+function formatPrice(value) {
+  if (value === null || value === undefined || value === '') return ''
+  const num = Number(String(value).replace(/\s/g, ''))
+  if (isNaN(num)) return value
+  return num.toLocaleString('fr-FR') // spaces as thousand separators
+}
+
+const displayPrice = computed({
+  get() {
+    return formatPrice(form.price)
+  },
+  set(val) {
+    const raw = val.replace(/\s/g, '')
+    form.price = raw
+  }
+})
 
 function fullImageUrl(path) {
   if (!path) return ''
@@ -239,9 +328,41 @@ function handleFileUpload(e) {
   const file = e.target.files[0]
   if (file) {
     selectedFile.value = file
-    // Create a local preview URL so the user sees it immediately
     form.image_url = URL.createObjectURL(file)
   }
+}
+
+function handleGalleryError(files) {
+  error.value = `Some files were rejected: ${files.map(f => f.name).join(', ')}`
+}
+
+function syncRemovedImages(newPreviews) {
+  // find which existing images are gone
+  const removed = existingImages.value.filter(
+    img => !newPreviews.includes(img.url)
+  )
+
+  for (const r of removed) {
+    if (!removedImages.value.includes(r.id)) {
+      removedImages.value.push(r.id)
+    }
+  }
+
+  // also update galleryPreviews manually
+  galleryPreviews.value = newPreviews
+}
+
+async function uploadGalleryImages(propertyId) {
+  if (!galleryFiles.value.length) return
+  for (const { file } of galleryFiles.value) {
+    const fd = new FormData()
+    fd.append('property', propertyId)
+    fd.append('image', file)
+    await api.post('/api/properties/property-images/', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  }
+  galleryFiles.value = []
 }
 
 async function loadProperty() {
@@ -249,7 +370,12 @@ async function loadProperty() {
     try {
       const { data } = await api.get(`/api/properties/${props.id}/`)
       Object.assign(form, data)
-      form.image_url = fullImageUrl(data.image) || null
+      form.image_url = data.image ? fullImageUrl(data.image) : null
+      existingImages.value = data.images.map(img => ({
+        id: img.id,
+        url: fullImageUrl(img.image),
+      }))
+      galleryPreviews.value = existingImages.value.map(img => img.url)
     } catch {
       error.value = 'Failed to load property'
     }
@@ -276,14 +402,21 @@ async function handleSubmit() {
       fd.append('image', selectedFile.value)
     }
 
+    let propertyId = props.id
     if (props.mode === 'create') {
-      await api.post('/api/properties/', fd, {
+      const { data } = await api.post('/api/properties/', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
+      propertyId = data.id
     } else {
       await api.put(`/api/properties/${props.id}/`, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
+    }
+
+    await uploadGalleryImages(propertyId)
+    for (const id of removedImages.value) {
+      await api.delete(`/api/properties/property-images/${id}/`)
     }
     window.location.href = '/properties'
   } catch {
@@ -321,7 +454,7 @@ onMounted(loadProperty)
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  white-space: nowrap; /* prevent text from wrapping */
+  white-space: nowrap;
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
 }

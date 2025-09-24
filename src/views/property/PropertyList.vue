@@ -62,7 +62,7 @@
               <h6 class="mb-1 fw-bold">{{ property.title || '—' }}</h6>
               <p class="mb-1">{{ property.address || '—' }}</p>
               <p class="mb-1">Type: {{ property.property_type }}</p>
-              <p class="mb-1">My price: {{ property.price || '—' }}</p>
+              <p class="mb-1">My price: {{ formatPrice(property.price) || '—' }}</p>
 
               <!-- Static buttons row -->
               <div class="mt-2 d-flex gap-2">
@@ -110,6 +110,13 @@ const error = ref('')
 const uploading = ref({}) // track upload status per property
 
 const MEDIA_BASE = import.meta.env.VITE_API_MEDIA_BASE_URL || 'http://localhost:8000/media/'
+
+function formatPrice(value) {
+  if (value === null || value === undefined || value === '') return ''
+  const num = Number(String(value).replace(/\s/g, ''))
+  if (isNaN(num)) return value
+  return num.toLocaleString('fr-FR') // spaces as thousand separators
+}
 
 function fullImageUrl(path) {
   if (!path) return ''
