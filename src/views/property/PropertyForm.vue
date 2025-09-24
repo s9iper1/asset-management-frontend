@@ -227,6 +227,14 @@ const error = ref('')
 const selectedFile = ref(null)
 const uploading = ref(false)
 
+const MEDIA_BASE = import.meta.env.VITE_API_MEDIA_BASE_URL || 'http://localhost:8000/media/'
+
+function fullImageUrl(path) {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  return `${MEDIA_BASE}${path}`
+}
+
 function handleFileUpload(e) {
   const file = e.target.files[0]
   if (file) {
@@ -241,7 +249,7 @@ async function loadProperty() {
     try {
       const { data } = await api.get(`/api/properties/${props.id}/`)
       Object.assign(form, data)
-      form.image_url = data.image || null
+      form.image_url = fullImageUrl(data.image) || null
     } catch {
       error.value = 'Failed to load property'
     }

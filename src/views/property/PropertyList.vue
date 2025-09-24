@@ -26,7 +26,7 @@
                 <!-- Image preview -->
                 <img
                   v-if="property.image && !uploading[property.id]"
-                  :src="property.image"
+                  :src="fullImageUrl(property.image)"
                   class="img-fluid rounded"
                   style="object-fit: cover; width: 100%; height: 100%;"
                   alt="Property"
@@ -108,6 +108,14 @@ const properties = ref([])
 const loading = ref(false)
 const error = ref('')
 const uploading = ref({}) // track upload status per property
+
+const MEDIA_BASE = import.meta.env.VITE_API_MEDIA_BASE_URL || 'http://localhost:8000/media/'
+
+function fullImageUrl(path) {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  return `${MEDIA_BASE}${path}`
+}
 
 // Fetch all properties
 async function fetchProperties() {
