@@ -167,7 +167,7 @@
         </div>
       </fieldset>
 
-      <div class="row g-3">
+      <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label class="form-label">Comment</label>
           <textarea v-model="form.comment" class="form-control" rows="2"></textarea>
@@ -180,7 +180,7 @@
 
       <!-- Featured image (create mode) -->
       <div v-if="mode === 'create'" class="mb-3">
-        <label class="form-label">Image</label>
+        <label class="form-label">Featured Image</label>
         <input
           ref="imageInput"
           type="file"
