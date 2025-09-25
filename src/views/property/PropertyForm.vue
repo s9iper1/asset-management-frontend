@@ -4,7 +4,7 @@
     <div class="d-flex justify-content-between align-items-end mb-3 w-100">
       <!-- Left side: image + title + buttons -->
       <div class="d-flex align-items-start gap-3">
-        <!-- Featured image upload (edit mode) -->
+        <!-- Primary image upload (edit mode) -->
         <div v-if="mode === 'edit'">
           <div
             class="property-image-wrapper d-flex align-items-center justify-content-center bg-light rounded"
@@ -178,9 +178,9 @@
         </div>
       </div>
 
-      <!-- Featured image (create mode) -->
+      <!-- Primary image (create mode) -->
       <div v-if="mode === 'create'" class="mb-3">
-        <label class="form-label">Featured Image</label>
+        <label class="form-label">Primary Image</label>
         <input
           ref="imageInput"
           type="file"
