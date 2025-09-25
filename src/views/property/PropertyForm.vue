@@ -213,12 +213,28 @@
 
         <!-- Preview newly added files -->
         <div class="row mt-3 gap-2">
+          <!-- Primary image preview -->
+          <div
+            v-if="form.image_url"
+            class="col-auto mb-3"
+            style="cursor: pointer;"
+            @click="showLightbox(0)"
+          >
+            <img
+              :src="form.image_url"
+              alt="Primary"
+              class="img-fluid rounded border"
+              style="object-fit: cover; width: 120px; height: 120px;"
+            />
+          </div>
+
+          <!-- Gallery images -->
           <div
             v-for="(img, index) in form.images"
             :key="img.id"
             class="col-auto mb-3"
             style="cursor: pointer;"
-            @click="showLightbox(index)"
+            @click="showLightbox(index + 1)"
           >
             <img
               :src="fullImageUrl(img.image)"
@@ -230,7 +246,7 @@
         </div>
         <vue-easy-lightbox
           :visible="lightboxVisible"
-          :imgs="form.images.map(img => fullImageUrl(img.image))"
+          :imgs="[form.image_url, ...form.images.map(img => fullImageUrl(img.image))].filter(Boolean)"
           :index="lightboxIndex"
           @hide="lightboxVisible = false"
         />
