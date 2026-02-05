@@ -1,181 +1,165 @@
 <template>
-  <div class="container py-4">
-    <!-- Header with title + add button -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h4 class="mb-0">Real estate</h4>
-      <router-link to="/properties/new" class="btn btn-sm btn-outline-secondary">
-        + New
-      </router-link>
-    </div>
+  <div class="property-page container">
+    <!-- Top Notifications -->
+    <TopNotifications />
 
-    <!-- Properties list -->
-    <div class="row">
-      <div
-        v-for="property in properties"
-        :key="property.id"
-        class="col-12 mb-3"
-      >
-        <div class="card shadow-sm p-3 mb-3">
-          <div class="row">
-            <!-- 1. Image -->
-            <div class="col-auto">
-              <div
-                class="property-image-wrapper d-flex align-items-center justify-content-center bg-light rounded position-relative"
-                style="width: 142px; height: 142px; overflow: hidden;"
-              >
-                <!-- Image preview -->
-                <img
-                  v-if="property.image && !uploading[property.id]"
-                  :src="fullImageUrl(property.image)"
-                  class="img-fluid rounded"
-                  style="object-fit: cover; width: 100%; height: 100%;"
-                  alt="Property"
-                />
+    <!-- TOP FILTERS -->
+    <TopFilters class="mb-4" />
 
-                <!-- Upload button (overlay) -->
-                <button
-                  class="upload-overlay-btn btn btn-outline-light btn-sm"
-                  @click="$refs[`fileInput-${property.id}`][0].click()"
-                >
-                  Upload a photo
-                </button>
-                <input
-                  type="file"
-                  accept="image/jpeg, image/png, image/webp"
-                  :ref="`fileInput-${property.id}`"
-                  class="d-none"
-                  @change="e => handleFileUpload(e, property.id)"
-                />
-
-                <!-- Spinner overlay -->
-                <div
-                  v-if="uploading[property.id]"
-                  class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 rounded"
-                >
-                  <LoadingSpinner />
-                </div>
-              </div>
-            </div>
-
-            <!-- 2. Info -->
-            <div class="col-5">
-              <h6 class="mb-1 fw-bold">{{ property.title || '—' }}</h6>
-              <p class="mb-1">{{ property.address || '—' }}</p>
-              <p class="mb-1">Type: {{ property.property_type }}</p>
-              <p class="mb-1">My price: {{ formatPrice(property.price) || '—' }}</p>
-
-              <!-- Static buttons row -->
-              <div class="mt-2 d-flex gap-2">
-                <button class="btn btn-sm btn-primary">Real estate</button>
-                <button class="btn btn-sm btn-outline-secondary">Sell it yourself</button>
-                <button class="btn btn-sm btn-success">Price map</button>
-              </div>
-            </div>
-
-            <!-- 3. Area -->
-            <div class="col d-flex align-items-center">
-              <p class="text-muted mb-0">Area: —</p>
-            </div>
-
-            <!-- 4. Detail -->
-            <div class="col-auto d-flex flex-column align-items-end">
-              <router-link
-                :to="`/properties/${property.id}`"
-                class="btn btn-sm btn-dark"
-              >
-                Detail
-              </router-link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading / error states -->
+    <!-- LOADING STATE -->
     <div v-if="loading" class="text-center py-5">
       <LoadingSpinner :size="40" />
     </div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
+
+    <!-- ERROR -->
+    <div v-if="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div
+      v-if="!loading && properties.length === 0"
+      class="text-center py-5 text-muted"
+    >
+      No properties found.
+    </div>
+
+    <!-- PROPERTY LIST -->
+    <div class="property-list">
+      <PropertyCard
+        v-for="p in properties"
+        :key="p.id"
+        :property="p"
+        :uploading="uploading[p.id]"
+        @upload="onUpload"
+        @price="openPriceMap"
+        @sell="openSellFlow"
+        @estate="openRealEstate"
+        @share="shareProperty"
+      />
+    </div>
+
+    <!-- PAGINATION -->
+    <div v-if="totalPages > 1" class="d-flex justify-content-center mt-4">
+      <Pagination v-model="page" :total="totalPages" />
+    </div>
+
+    <!-- FOOTER -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import api from '@/api/client'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import { ref, onMounted, watch } from "vue";
+import api from "@/api/client";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
-const properties = ref([])
-const loading = ref(false)
-const error = ref('')
-const uploading = ref({}) // track upload status per property
+import TopFilters from "@/components/shared/TopFilters.vue";
+import Pagination from "@/components/shared/Pagination.vue";
+// import FooterDesktop from "@/components/shared/FooterDesktop.vue";
 
-const MEDIA_BASE = import.meta.env.VITE_API_MEDIA_BASE_URL || 'http://localhost:8000/media/'
+import PropertyCard from "@/components/property/PropertyCard.vue";
+import TopNotifications from "@/components/shared/TopNotifications.vue";
 
-function formatPrice(value) {
-  if (value === null || value === undefined || value === '') return ''
-  const num = Number(String(value).replace(/\s/g, ''))
-  if (isNaN(num)) return value
-  return num.toLocaleString('fr-FR') // spaces as thousand separators
-}
+const properties = ref([]);
+const loading = ref(false);
+const error = ref("");
 
-function fullImageUrl(path) {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `${MEDIA_BASE}${path}`
-}
+const uploading = ref({});
 
-// Fetch all properties
+/* PAGINATION */
+const page = ref(1);
+const pageSize = 10;
+const totalPages = ref(1);
+
+/* Fetch properties */
 async function fetchProperties() {
-  loading.value = true
-  error.value = ''
+  loading.value = true;
+  error.value = "";
+
   try {
-    const { data } = await api.get('/api/properties/')
-    properties.value = data
+    const { data } = await api.get("/api/properties/", {
+      params: { page: page.value, page_size: pageSize },
+    });
+
+    // If backend isn't paginated yet:
+    properties.value = data.results || data;
+    totalPages.value = data.total_pages || 1;
   } catch (err) {
-    error.value = 'Failed to load properties'
+    console.error(err);
+    error.value = "Failed to load properties";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
-// Upload image for a property
-async function handleFileUpload(event, propertyId) {
-  const file = event.target.files[0]
-  if (!file) return
+onMounted(fetchProperties);
 
-  const formData = new FormData()
-  formData.append('image', file)
+/* Auto-refresh when page changes */
+watch(page, fetchProperties);
 
-  // mark uploading
-  uploading.value = { ...uploading.value, [propertyId]: true }
+/* Image upload handler */
+async function onUpload({ id, file }) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  uploading.value = { ...uploading.value, [id]: true };
 
   try {
-    await api.patch(`/api/properties/${propertyId}/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    await fetchProperties() // reload list
+    await api.patch(`/api/properties/${id}/`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    fetchProperties();
   } catch (err) {
-    console.error('Upload failed', err)
-    error.value = 'Failed to upload image'
+    console.error("Upload failed", err);
   } finally {
-    uploading.value = { ...uploading.value, [propertyId]: false }
+    uploading.value = { ...uploading.value, [id]: false };
   }
 }
 
-onMounted(fetchProperties)
+/* ACTION HANDLERS */
+function openPriceMap(id) {
+  alert("Open price map for property " + id);
+}
+function openSellFlow(id) {
+  alert("Sell it yourself: " + id);
+}
+function openRealEstate(id) {
+  alert("Real estate service clicked for " + id);
+}
+function shareProperty(id) {
+  navigator.share
+    ? navigator.share({ url: window.location.href })
+    : alert("Share clicked for property " + id);
+}
 </script>
 
 <style scoped>
-.property-image-wrapper .upload-overlay-btn {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap; /* prevent text from wrapping */
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
+.property-page {
+  /* Using a light background for the page body helps
+     the white cards pop, just like in the screenshot */
+  background-color: #faf9f3;
+  min-height: 100vh;
+  padding: 20px 40px;
 }
 
-.property-image-wrapper:hover .upload-overlay-btn {
-  opacity: 1;
+.property-list {
+  display: flex;
+  flex-direction: column;
+  /* 24px gap between cards as seen in the desktop view */
+  gap: 24px;
+}
+
+/* .container {
+  max-width: 1200px;
+} */
+
+/* Mobile adjustments to match the vertical stack screenshot */
+@media (max-width: 768px) {
+  .property-page {
+    padding: 20px 10px;
+  }
+  .property-list {
+    gap: 16px;
+  }
 }
 </style>
