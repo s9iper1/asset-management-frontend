@@ -21,6 +21,8 @@
       <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0">
         <AppButton variant="pill" size="md">Sell by your self</AppButton>
         <AppButton variant="pill" size="md">Talk to Realestate</AppButton>
+      </div>
+      <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0">
         <AppButton variant="pill" size="md">Get Advice by AI</AppButton>
       </div>
     </div>
@@ -41,6 +43,6 @@ const router = useRouter();
 const route = useRoute();
 
 const editProperty = () => {
-  router.push(`/edit-property/${route.params.id}`);
+  router.push(`/edit-propertyview/${route.params.id}`);
 };
 </script>

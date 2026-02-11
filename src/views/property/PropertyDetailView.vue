@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="property-detail-container container-xxl">
     <!-- <TopFilters /> -->
     <PropertyDetailFilter />
     <PropertyInfo :id="route.params.id" />
@@ -18,3 +18,10 @@ import { useRoute } from "vue-router";
 
 const route = useRoute();
 </script>
+
+<style scoped>
+.property-detail-container {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+</style>

@@ -400,10 +400,6 @@ const toggleIcon = () => {
     padding: 16px !important;
   }
 
-  .contract-header {
-    margin-bottom: 1.5rem !important;
-  }
-
   .contract-title {
     font-size: 18px;
     line-height: 24px;

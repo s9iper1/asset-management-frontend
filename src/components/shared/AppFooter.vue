@@ -9,7 +9,7 @@
         <div>
           <div class="logo-section d-flex align-items-center">
             <img
-              src="/public/logo.png"
+              src="/logo.png"
               class="footer-logo me-3"
               alt="Nemovník Logo"
               style="width: 28px; height: 50px; object-fit: cover"
@@ -95,7 +95,7 @@
         <div class="col-auto">
           <div class="logo-section d-flex align-items-center">
             <img
-              src="/public/logo.png"
+              src="/logo.png"
               class="footer-logo me-2"
               alt="Nemovník Logo"
               style="width: 24px; height: 40px; object-fit: cover"
@@ -184,8 +184,6 @@
 /* Shared Styles */
 .footer-desktop-web,
 .footer-mobile-web {
-  margin: 16px 16px 0 16px;
-
   box-shadow: 0px 5px 15px 0px rgba(223, 222, 203, 0.7) !important;
 }
 
@@ -307,6 +305,7 @@
 @media (max-width: 768px) {
   .footer-mobile-web {
     padding: 16px !important;
+    margin: 0 8px;
   }
 
   .footer-brand-name {

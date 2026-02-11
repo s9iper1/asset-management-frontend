@@ -11,7 +11,7 @@
           @click="router.push('/')"
         >
           <img
-            src="/public/logo.png"
+            src="/logo.png"
             class="image-39"
             alt="Logo"
             style="width: 28px; height: 50px; object-fit: cover"
@@ -164,7 +164,7 @@
         <!-- <div class="mobile-menu-header">
           <div class="d-flex align-items-center">
             <img
-              src="/public/logo.png"
+              src="/logo.png"
               alt="Logo"
               style="width: 24px; height: 40px; object-fit: cover"
             />
@@ -685,7 +685,6 @@ onUnmounted(() => {
 
 @media (max-width: 992px) {
   .horizontal-nav-bar-desktop-web {
-    padding: 12px 16px;
     height: 65px;
   }
 

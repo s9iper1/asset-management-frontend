@@ -13,12 +13,20 @@
       </div>
     </div>
     <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0">
-      <AppButton variant="primary" size="md">Add new</AppButton>
+      <AppButton variant="primary" size="md" @click="goToAddProperty">Add new</AppButton>
       <AppButton variant="outline" size="md">Customize View</AppButton>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
 import AppButton from "../shared/AppButton.vue";
+
+const router = useRouter();
+
+const goToAddProperty = () => {
+  router.push("/new-propertyview");
+};
 </script>
+

@@ -1,5 +1,5 @@
 <template>
-  <div class="property-page container">
+  <div class="property-page container-xxl">
     <!-- Top Notifications -->
     <TopNotifications />
 

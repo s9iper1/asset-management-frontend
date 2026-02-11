@@ -1,5 +1,5 @@
 <template>
-  <div class="property-details-container">
+  <div class="property-details-container bg-white rounded-5 shadow-sm px-3 mb-3">
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
@@ -13,10 +13,10 @@
     </div>
 
     <!-- Content -->
-    <div v-else class="row g-4 bg-white rounded-5 shadow-sm px-3">
+    <div v-else class="row g-4">
       <!-- Left Column - Property Photos -->
       <div class="col-lg-6">
-        <div class="property-section sp-4 h-100">
+        <div class="property-section sp-4 pb-lg-4 h-100">
           <h2 class="section-title text-primary mb-4">Property photos</h2>
 
           <!-- Main Large Image -->
@@ -76,9 +76,20 @@
           >
             <button
               class="btn btn-outline-primary border-2 px-4 py-2 rounded-3"
+              @click="triggerFileUpload"
+              :disabled="uploading"
             >
-              <span class="fw-semibold">Upload more photos</span>
+              <span v-if="uploading" class="spinner-border spinner-border-sm me-2"></span>
+              <span class="fw-semibold">{{ uploading ? 'Uploading...' : 'Upload more photos' }}</span>
             </button>
+            <input
+              ref="fileInput"
+              type="file"
+              class="d-none"
+              accept="image/jpeg, image/png, image/webp"
+              multiple
+              @change="handleFileUpload"
+            />
 
             <div
               v-if="allImages.length > 0"
@@ -103,7 +114,7 @@
 
       <!-- Right Column - Basic Information -->
       <div class="col-lg-6">
-        <div class="property-section p-4 h-100">
+        <div class="property-section p-lg-4 pb-sm-4 h-100">
           <h2 class="section-title text-primary mb-4">Basic information</h2>
 
           <!-- Property Title -->
@@ -358,6 +369,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import api from "@/api/client";
+import { showSuccess, showError } from "@/utils/toast";
 
 const props = defineProps({
   id: {
@@ -375,6 +387,8 @@ const placeholderImage = "/images/placeholder-property.png";
 const property = ref({});
 const loading = ref(true);
 const error = ref("");
+const uploading = ref(false);
+const fileInput = ref(null);
 
 // Current image index in modal
 const currentImageIndex = ref(0);
@@ -473,6 +487,43 @@ const openGoogleMaps = () => {
 // Handle map image error (fallback)
 const handleMapError = (e) => {
   e.target.style.display = "none";
+};
+
+// Trigger file input click
+const triggerFileUpload = () => {
+  fileInput.value?.click();
+};
+
+// Handle file upload
+const handleFileUpload = async (e) => {
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+
+  uploading.value = true;
+
+  try {
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('property', props.id);
+      formData.append('image', file);
+
+      await api.post('/api/properties/property-images/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    }
+
+    showSuccess(`${files.length} photo${files.length > 1 ? 's' : ''} uploaded successfully!`);
+    await fetchProperty(); // Refresh to show new images
+  } catch (err) {
+    console.error('Failed to upload photo:', err);
+    showError('Failed to upload photo. Please try again.');
+  } finally {
+    uploading.value = false;
+    // Reset file input
+    if (fileInput.value) {
+      fileInput.value.value = '';
+    }
+  }
 };
 
 // Handle keyboard navigation
@@ -627,7 +678,9 @@ onUnmounted(() => {
   line-height: 20px;
 }
 
-.btn-outline-primary:hover {
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
   background-color: #1c8089 !important;
   color: white !important;
 }
@@ -778,9 +831,9 @@ onUnmounted(() => {
     padding: 15px;
   }
 
-  .property-section {
+  /*.property-section {
     padding: 20px !important;
-  }
+  }*/
 
   .main-photo img {
     height: 300px !important;
@@ -804,9 +857,9 @@ onUnmounted(() => {
     padding: 10px;
   }
 
-  .property-section {
+  /*.property-section {
     padding: 16px !important;
-  }
+  }*/
 
   .section-title {
     font-size: 20px;
@@ -859,9 +912,9 @@ onUnmounted(() => {
 }
 
 @media (max-width: 576px) {
-  .property-section {
+  /*.property-section {
     padding: 12px !important;
-  }
+  }*/
 
   .main-photo img {
     height: 200px !important;

@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid mt-3">
+  <div class="property-edit-container container-xxl my-3">
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
@@ -31,7 +31,8 @@
 
             <!-- Property Title -->
             <h4 class="mb-4 fw-semibold">
-              {{ property.title || 'Untitled Property' }}
+              <span v-if="mode === 'create'">New Property</span>
+              <span v-else>{{ property.title || 'Untitled Property' }}</span>
             </h4>
 
             <!-- Property Form -->
@@ -462,15 +463,24 @@
           <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h6 class="fw-semibold mb-0">Select Agencies</h6>
-              <small v-if="loadingAgencies" class="text-muted">
-                <span class="spinner-border spinner-border-sm"></span> Loading...
-              </small>
+              <div class="d-flex align-items-center gap-2">
+                <small v-if="loadingAgencies" class="text-muted">
+                  <span class="spinner-border spinner-border-sm"></span> Loading...
+                </small>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  @click="showAddAgencyPopup"
+                >
+                  + Add Agency
+                </button>
+              </div>
             </div>
 
             <!-- No Agencies Message -->
             <div v-if="!loadingAgencies && agencies.length === 0" class="text-center py-4">
               <p class="text-muted mb-2">No agencies found.</p>
-              <button class="btn btn-primary btn-sm">Add Agency</button>
+              <button type="button" class="btn btn-primary btn-sm" @click="showAddAgencyPopup">Add Agency</button>
             </div>
 
             <!-- Agencies List -->
@@ -549,10 +559,12 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import api from "@/api/client";
+import { showSuccess, showError, showWarning } from "@/utils/toast";
+import Swal from "sweetalert2";
 
 const props = defineProps({
-  mode: { type: String, default: "edit" },
-  id: { type: [String, Number], required: true },
+  mode: { type: String, default: "edit" }, // "edit" or "create"
+  id: { type: [String, Number], default: null },
 });
 
 const router = useRouter();
@@ -560,7 +572,7 @@ const router = useRouter();
 // State
 const loading = ref(true);
 const saving = ref(false);
-const error = ref("");
+const error = ref(""); // Needed for template error state
 
 // AI Text Generation state
 const generatingAI = ref(false);
@@ -629,8 +641,20 @@ const selectedCount = computed(() => {
   return agencies.value.filter((agency) => agency.selected).length;
 });
 
-// Load property from API
+// Load property from API (only in edit mode)
 async function loadProperty() {
+  // Skip loading in create mode
+  if (props.mode === 'create') {
+    loading.value = false;
+    return;
+  }
+
+  if (!props.id) {
+    error.value = "No property ID provided.";
+    loading.value = false;
+    return;
+  }
+
   loading.value = true;
   error.value = "";
 
@@ -670,16 +694,27 @@ async function saveChanges() {
       is_active: property.value.is_active,
     };
 
-    await api.put(`/api/properties/${props.id}/`, payload);
+    let savedPropertyId;
 
-    // Update original for future discards
-    originalProperty.value = { ...property.value };
+    if (props.mode === 'create') {
+      // Create new property
+      const { data } = await api.post('/api/properties/', payload);
+      savedPropertyId = data.id;
+      showSuccess("Property created successfully!");
+    } else {
+      // Update existing property
+      await api.put(`/api/properties/${props.id}/`, payload);
+      savedPropertyId = props.id;
+      // Update original for future discards
+      originalProperty.value = { ...property.value };
+      showSuccess("Property saved successfully!");
+    }
 
-    // Navigate back to detail view
-    router.push(`/properties/${props.id}`);
+    // Navigate to detail view
+    router.push(`/properties/${savedPropertyId}`);
   } catch (err) {
     console.error("Failed to save property:", err);
-    error.value = "Failed to save changes. Please try again.";
+    showError(props.mode === 'create' ? "Failed to create property. Please try again." : "Failed to save changes. Please try again.");
   } finally {
     saving.value = false;
   }
@@ -707,6 +742,65 @@ async function loadAgencies() {
     console.error("Failed to load agencies:", err);
   } finally {
     loadingAgencies.value = false;
+  }
+}
+
+// Show Add Agency popup
+async function showAddAgencyPopup() {
+  const { value: formValues } = await Swal.fire({
+    title: 'Add New Agency',
+    html: `
+      <div class="mb-3 text-start">
+        <label class="form-label small">Name *</label>
+        <input id="swal-name" class="swal2-input" placeholder="Agency name" style="width: 100%; margin: 0;">
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label small">Email *</label>
+        <input id="swal-email" type="email" class="swal2-input" placeholder="email@example.com" style="width: 100%; margin: 0;">
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label small">Phone</label>
+        <input id="swal-phone" class="swal2-input" placeholder="+420123456789" style="width: 100%; margin: 0;">
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label small">Website</label>
+        <input id="swal-website" class="swal2-input" placeholder="https://example.com" style="width: 100%; margin: 0;">
+      </div>
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Create Agency',
+    confirmButtonColor: '#1c8089',
+    cancelButtonText: 'Cancel',
+    preConfirm: () => {
+      const name = document.getElementById('swal-name').value.trim();
+      const email = document.getElementById('swal-email').value.trim();
+      const phone = document.getElementById('swal-phone').value.trim();
+      const website = document.getElementById('swal-website').value.trim();
+
+      if (!name || !email) {
+        Swal.showValidationMessage('Name and Email are required');
+        return false;
+      }
+
+      return { name, email, phone, website };
+    }
+  });
+
+  if (formValues) {
+    try {
+      await api.post('/api/properties/agencies/', {
+        name: formValues.name,
+        email: formValues.email,
+        phone: formValues.phone || null,
+        website: formValues.website || null
+      });
+      showSuccess(`Agency "${formValues.name}" created successfully!`);
+      await loadAgencies(); // Refresh the list
+    } catch (err) {
+      console.error('Failed to create agency:', err);
+      showError('Failed to create agency. Please try again.');
+    }
   }
 }
 
@@ -770,9 +864,9 @@ async function generateAIText() {
   } catch (err) {
     console.error("Failed to generate AI text:", err);
     if (err.response?.status === 402) {
-      error.value = "Insufficient credits. Please add more credits to use AI features.";
+      showError("Insufficient credits. Please add more credits to use AI features.");
     } else {
-      error.value = "Failed to generate AI text. Please try again.";
+      showError("Failed to generate AI text. Please try again.");
     }
   } finally {
     generatingAI.value = false;
@@ -798,7 +892,7 @@ async function applyAIText() {
     aiGenerationId.value = null;
   } catch (err) {
     console.error("Failed to apply AI text:", err);
-    error.value = "Failed to apply AI text. Please try again.";
+    showError("Failed to apply AI text. Please try again.");
   }
 }
 
@@ -808,12 +902,11 @@ async function sendToAgencies() {
   if (selectedAgencies.length === 0) return;
 
   if (!emailBody.value.trim()) {
-    error.value = "Please enter a message before sending.";
+    showWarning("Please enter a message before sending.");
     return;
   }
 
   sendingEmail.value = true;
-  error.value = "";
 
   try {
     // Create communication for each selected agency
@@ -826,10 +919,10 @@ async function sendToAgencies() {
         status: "sent"
       });
     }
-    alert(`Email sent to ${selectedAgencies.length} ${selectedAgencies.length === 1 ? 'agency' : 'agencies'}! Check email history for status.`);
+    showSuccess(`Email sent to ${selectedAgencies.length} ${selectedAgencies.length === 1 ? 'agency' : 'agencies'}!`);
   } catch (err) {
     console.error("Failed to send communications:", err);
-    error.value = "Failed to send to some agencies. Please try again.";
+    showError("Failed to send to some agencies. Please try again.");
   } finally {
     sendingEmail.value = false;
   }
@@ -841,9 +934,10 @@ function copyToClipboard() {
     `Hello,\n\nI'm contacting you regarding my property (${property.value.property_type}, ${property.value.address || 'No address'}).\n\n${property.value.comment || ''}\n\nThank you and I look forward to your response.\nBest regards`;
 
   navigator.clipboard.writeText(text).then(() => {
-    alert('Copied to clipboard!');
+    showSuccess('Copied to clipboard!');
   }).catch(err => {
     console.error('Failed to copy:', err);
+    showError('Failed to copy to clipboard');
   });
 }
 
@@ -856,6 +950,10 @@ onMounted(() => {
 
 <style scoped>
 /* Minimal custom CSS - Most styling handled by Bootstrap */
+.property-edit-container {
+  padding-left: 40px;
+  padding-right: 40px;
+}
 
 /* Custom card styling */
 .card {
@@ -912,9 +1010,12 @@ onMounted(() => {
   border-color: #1c8089;
 }
 
-.btn-outline-primary:hover {
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
   background-color: #1c8089;
   border-color: #1c8089;
+  color: #ffffff;
 }
 
 .btn-info {

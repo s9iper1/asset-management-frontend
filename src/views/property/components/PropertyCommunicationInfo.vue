@@ -349,10 +349,6 @@ const toggleIcon = () => {
     padding: 16px !important;
   }
 
-  .communication-header {
-    margin-bottom: 1.5rem !important;
-  }
-
   .communication-title {
     font-size: 18px;
     line-height: 24px;

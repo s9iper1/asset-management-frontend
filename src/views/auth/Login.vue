@@ -6,8 +6,8 @@
       <!-- Logo Section -->
       <div class="logo-section mb-4">
         <div class="d-flex align-items-center justify-content-center mb-3">
-          <img src="/public/logo.png" class="login-logo" alt="Nemovník Logo" />
-          <span class="brand-name ms-3 fw-semibold fs-4">Nemovník</span>
+          <img src="/logo.png" class="login-logo" alt="Nemovník Logo" />
+          <span class="brand-name ms-1 fw-semibold fs-4">Nemovník</span>
         </div>
         <div class="tagline-container">
           <span class="tagline text-muted fs-6"
@@ -100,6 +100,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { showError, showSuccess } from "@/utils/toast";
 
 // Form data
 const email = ref("");
@@ -108,7 +109,6 @@ const rememberMe = ref(false);
 const showPassword = ref(false);
 
 // UI state
-const error = ref("");
 const loading = ref(false);
 
 const router = useRouter();
@@ -116,16 +116,16 @@ const auth = useAuthStore();
 
 async function handleLogin() {
   loading.value = true;
-  error.value = "";
 
   try {
     // Simulate API delay for demo
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await auth.login(email.value, password.value);
+    showSuccess("Login successful!");
     router.push("/properties");
   } catch (err) {
-    error.value = "Invalid email or password. Please try again.";
+    showError("Invalid email or password. Please try again.");
   } finally {
     loading.value = false;
   }
@@ -166,7 +166,7 @@ function handleSignup() {
 .login-logo {
   width: 40px;
   height: 40px;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .brand-name {

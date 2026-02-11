@@ -15,6 +15,11 @@ const routes = [
     props: { mode: "create" },
   },
   {
+    path: "/new-propertyview",
+    component: PropertyEditView,
+    props: { mode: "create" },
+  },
+  {
     path: "/edit-propertyview/:id",
     component: PropertyEditView,
     props: (route) => ({ mode: "edit", id: route.params.id }),

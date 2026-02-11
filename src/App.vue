@@ -2,7 +2,7 @@
   <div class="layout p-3">
     <!-- <Navbar /> -->
     <top-nav-bar v-if="userLogin?.name" />
-    <div style="overflow-y: auto"><router-view /></div>
+    <div><router-view /></div>
     <app-footer v-if="userLogin?.name" />
   </div>
 </template>

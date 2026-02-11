@@ -659,7 +659,9 @@ onMounted(loadProperty);
   border-color: #1c8089;
 }
 
-.btn-outline-primary:hover {
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
   background-color: #1c8089;
   border-color: #1c8089;
   color: #fff;
