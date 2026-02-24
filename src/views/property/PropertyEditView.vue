@@ -901,10 +901,21 @@ async function sendToAgencies() {
   const selectedAgencies = agencies.value.filter(a => a.selected);
   if (selectedAgencies.length === 0) return;
 
-  if (!emailBody.value.trim()) {
-    showWarning("Please enter a message before sending.");
-    return;
-  }
+  // Build fallback preview message
+  const fallbackMessage = `Hello,
+
+  I'm contacting you regarding my property (${property.value.property_type || 'Property'}, ${property.value.address || 'No address'}).
+  Please provide an estimated sale price and a recommended strategy.
+
+  ${property.value.comment ? `Brief details: ${property.value.comment}\n\n` : ''}
+  ${property.value.conditions ? `Condition: ${property.value.conditions}\n\n` : ''}
+  ${property.value.story ? `My expectations: ${property.value.story}\n\n` : ''}
+
+  Thank you and I look forward to your response.
+  Best regards`;
+
+  // Use emailBody if filled, otherwise fallback
+  const messageToSend = emailBody.value.trim() || fallbackMessage;
 
   sendingEmail.value = true;
 
@@ -915,7 +926,7 @@ async function sendToAgencies() {
         property: props.id,
         agency: agency.id,
         subject: emailSubject.value || "Property Inquiry",
-        initial_message: emailBody.value,
+        initial_message: messageToSend,
         status: "sent"
       });
     }
