@@ -16,7 +16,7 @@
     <!-- Content -->
     <div v-else class="row g-4">
       <!-- Left Column - Property Details -->
-      <div class="col-12 col-lg-4">
+      <div :class="mode === 'create' ? 'col-12 col-lg-12' : 'col-12 col-lg-4'">
         <div class="card shadow-sm border-0 rounded-4">
           <div class="card-body p-4">
             <!-- Draft Status -->
@@ -42,7 +42,7 @@
                 <label class="form-label text-secondary small mb-2"
                   >Property title</label
                 >
-                <div class="input-group border rounded-3">
+                <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('title')}">
                   <input
                     type="text"
                     class="form-control border-0"
@@ -50,6 +50,7 @@
                     placeholder="Enter property title"
                   />
                 </div>
+                <div v-if="getFieldError('title')" class="text-danger small mt-1">{{ getFieldError('title') }}</div>
               </div>
 
               <!-- Type and Contract Type -->
@@ -58,7 +59,7 @@
                   <label class="form-label text-secondary small mb-2"
                     >Type</label
                   >
-                  <div class="input-group border rounded-3">
+                  <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('property_type')}">
                     <select
                       v-model="property.property_type"
                       class="form-select border-0"
@@ -71,12 +72,13 @@
                       <option value="other">Other</option>
                     </select>
                   </div>
+                  <div v-if="getFieldError('property_type')" class="text-danger small mt-1">{{ getFieldError('property_type') }}</div>
                 </div>
                 <div class="col-6">
                   <label class="form-label text-secondary small mb-2"
                     >Contract</label
                   >
-                  <div class="input-group border rounded-3">
+                  <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('contract_type')}">
                     <select
                       v-model="property.contract_type"
                       class="form-select border-0"
@@ -88,6 +90,7 @@
                       <option value="other">Other</option>
                     </select>
                   </div>
+                  <div v-if="getFieldError('contract_type')" class="text-danger small mt-1">{{ getFieldError('contract_type') }}</div>
                 </div>
               </div>
 
@@ -97,25 +100,27 @@
                   <label class="form-label text-secondary small mb-2"
                     >Purchase Date</label
                   >
-                  <div class="input-group border rounded-3">
+                  <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('purchase_date')}">
                     <input
                       type="date"
                       class="form-control border-0"
                       v-model="property.purchase_date"
                     />
                   </div>
+                  <div v-if="getFieldError('purchase_date')" class="text-danger small mt-1">{{ getFieldError('purchase_date') }}</div>
                 </div>
                 <div class="col-6">
                   <label class="form-label text-secondary small mb-2"
                     >Available From</label
                   >
-                  <div class="input-group border rounded-3">
+                  <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('available_from')}">
                     <input
                       type="date"
                       class="form-control border-0"
                       v-model="property.available_from"
                     />
                   </div>
+                  <div v-if="getFieldError('available_from')" class="text-danger small mt-1">{{ getFieldError('available_from') }}</div>
                 </div>
               </div>
 
@@ -126,7 +131,7 @@
                 <label class="form-label text-secondary small mb-2"
                   >Address</label
                 >
-                <div class="input-group border rounded-3 mb-3">
+                <div class="input-group border rounded-3 mb-3" :class="{'border-danger': getFieldError('address')}">
                   <input
                     type="text"
                     class="form-control border-0"
@@ -134,13 +139,14 @@
                     placeholder="Enter address"
                   />
                 </div>
+                <div v-if="getFieldError('address')" class="text-danger small mt-1 mb-3">{{ getFieldError('address') }}</div>
 
                 <div class="row mb-3">
                   <div class="col-6">
                     <label class="form-label text-secondary small mb-2"
                       >GPS lat</label
                     >
-                    <div class="input-group border rounded-3">
+                    <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('latitude')}">
                       <input
                         type="number"
                         step="0.000001"
@@ -149,12 +155,13 @@
                         placeholder="Latitude"
                       />
                     </div>
+                    <div v-if="getFieldError('latitude')" class="text-danger small mt-1">{{ getFieldError('latitude') }}</div>
                   </div>
                   <div class="col-6">
                     <label class="form-label text-secondary small mb-2"
                       >GPS lng</label
                     >
-                    <div class="input-group border rounded-3">
+                    <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('longitude')}">
                       <input
                         type="number"
                         step="0.000001"
@@ -163,6 +170,7 @@
                         placeholder="Longitude"
                       />
                     </div>
+                    <div v-if="getFieldError('longitude')" class="text-danger small mt-1">{{ getFieldError('longitude') }}</div>
                   </div>
                 </div>
 
@@ -182,7 +190,7 @@
                 <label class="form-label text-secondary small mb-2"
                   >Conditions</label
                 >
-                <div class="input-group border rounded-3">
+                <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('conditions')}">
                   <input
                     type="text"
                     class="form-control border-0"
@@ -190,6 +198,7 @@
                     placeholder="Describe conditions"
                   />
                 </div>
+                <div v-if="getFieldError('conditions')" class="text-danger small mt-1">{{ getFieldError('conditions') }}</div>
               </div>
 
               <!-- Comment (Short Description) -->
@@ -199,10 +208,12 @@
                 >
                 <textarea
                   class="form-control border rounded-3"
+                  :class="{'border-danger': getFieldError('comment')}"
                   v-model="property.comment"
                   rows="3"
                   placeholder="Enter comment/short description"
                 ></textarea>
+                <div v-if="getFieldError('comment')" class="text-danger small mt-1">{{ getFieldError('comment') }}</div>
               </div>
 
               <!-- Story (Expectations) -->
@@ -212,10 +223,12 @@
                 >
                 <textarea
                   class="form-control border rounded-3"
+                  :class="{'border-danger': getFieldError('story')}"
                   v-model="property.story"
                   rows="3"
                   placeholder="Enter story/expectations"
                 ></textarea>
+                <div v-if="getFieldError('story')" class="text-danger small mt-1">{{ getFieldError('story') }}</div>
               </div>
 
               <!-- Contact -->
@@ -223,7 +236,7 @@
                 <label class="form-label text-secondary small mb-2"
                   >Contact</label
                 >
-                <div class="input-group border rounded-3">
+                <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('contact')}">
                   <input
                     type="text"
                     class="form-control border-0"
@@ -231,6 +244,7 @@
                     placeholder="Name/Company"
                   />
                 </div>
+                <div v-if="getFieldError('contact')" class="text-danger small mt-1">{{ getFieldError('contact') }}</div>
               </div>
 
               <!-- Purchase Price -->
@@ -238,7 +252,7 @@
                 <label class="form-label text-secondary small mb-2"
                   >Price</label
                 >
-                <div class="input-group border rounded-3">
+                <div class="input-group border rounded-3" :class="{'border-danger': getFieldError('price')}">
                   <span class="input-group-text bg-light border-0 text-muted"
                     >CZK</span
                   >
@@ -249,6 +263,100 @@
                     placeholder="Enter price"
                   />
                 </div>
+                <div v-if="getFieldError('price')" class="text-danger small mt-1">{{ getFieldError('price') }}</div>
+              </div>
+
+              <!-- Primary image (Create & Edit Modes) -->
+              <div class="mb-4">
+                <label class="form-label text-secondary small mb-2"
+                  >Primary Image <span class="text-danger">*</span></label
+                >
+                <vue3-dropzone
+                  id="property-primary-dropzone"
+                  v-model="primaryFiles"
+                  v-model:previews="primaryPreviews"
+                  :multiple="false"
+                  accept="image/jpeg,image/png,image/webp"
+                  :maxFiles="1"
+                  :maxFileSize="10"
+                  :showSelectButton="false"
+                  @error="handleGalleryError"
+                  selectFileStrategy="replace"
+                  mode="edit"
+                  imgWidth="150px"
+                  imgHeight="150px"
+                  :class="{'border border-danger rounded-3': getFieldError('image')}"
+                >
+                </vue3-dropzone>
+                <div v-if="getFieldError('image')" class="text-danger small mt-1">{{ getFieldError('image') }}</div>
+
+                <!-- Explicit Primary Image Preview if no new file selected but URL exists -->
+                <div v-if="property.image_url && primaryFiles.length === 0" class="mt-3 row g-2">
+                  <div class="col-auto position-relative" style="cursor: pointer" @click="showLightbox(0)">
+                    <div class="border rounded-3 p-2 bg-light">
+                      <img
+                        :src="property.image_url"
+                        alt="Primary"
+                        class="img-fluid rounded-2"
+                        style="object-fit: cover; width: 120px; height: 120px"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Gallery images (edit mode only) -->
+              <div v-if="mode === 'edit'" class="mb-4">
+                <h5 class="fw-semibold mb-3">Gallery images</h5>
+                <vue3-dropzone
+                  id="property-gallery-dropzone"
+                  v-model="galleryFiles"
+                  v-model:previews="galleryPreviews"
+                  :multiple="true"
+                  accept="image/jpeg,image/png,image/webp"
+                  :maxFiles="10"
+                  :maxFileSize="10"
+                  :showSelectButton="false"
+                  @error="handleGalleryError"
+                  @update:previews="syncRemovedImages"
+                  selectFileStrategy="merge"
+                  mode="edit"
+                  imgWidth="150px"
+                  imgHeight="150px"
+                >
+                </vue3-dropzone>
+
+                <!-- Preview newly added files -->
+                <div class="row mt-3 g-3">
+                  <!-- Gallery images -->
+                  <div
+                    v-for="(img, index) in property.images"
+                    :key="img.id"
+                    class="col-auto"
+                    style="cursor: pointer"
+                    @click="showLightbox(index + 1)"
+                  >
+                    <div class="border rounded-3 p-2 bg-light">
+                      <img
+                        :src="fullImageUrl(img.image)"
+                        alt="Gallery"
+                        class="img-fluid rounded-2"
+                        style="object-fit: cover; width: 120px; height: 120px"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <vue-easy-lightbox
+                  :visible="lightboxVisible"
+                  :imgs="
+                    [
+                      property.image_url,
+                      ...(property.images || []).map((img) => fullImageUrl(img.image)),
+                    ].filter(Boolean)
+                  "
+                  :index="lightboxIndex"
+                  @hide="lightboxVisible = false"
+                />
               </div>
 
               <!-- Active Toggle -->
@@ -267,6 +375,29 @@
                     >Active listing</label
                   >
                 </div>
+              </div>
+
+              <!-- Attachments Toggle -->
+              <div
+                class="d-flex align-items-center justify-content-between mb-4"
+              >
+                <div class="form-check form-switch mb-0">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    v-model="includeAttachments"
+                    style="width: 3em; height: 1.5em"
+                  />
+                  <label class="form-check-label ms-2 fw-semibold"
+                    >Include attachments</label
+                  >
+                </div>
+                <span
+                  class="badge bg-primary rounded-circle"
+                  v-if="includeAttachments"
+                  >{{ (property.image_url ? 1 : 0) + (property.images?.length || 0) }}</span
+                >
               </div>
 
               <!-- Action Buttons -->
@@ -300,7 +431,7 @@
       </div>
 
       <!-- Right Column - Main Content -->
-      <div class="col-12 col-lg-8">
+      <div class="col-12 col-lg-8" v-if="mode !== 'create'">
         <!-- Action Buttons Row -->
         <div class="card shadow-sm border-0 rounded-4 mb-4">
           <div class="card-body p-4">
@@ -561,6 +692,11 @@ import { useRouter } from "vue-router";
 import api from "@/api/client";
 import { showSuccess, showError, showWarning } from "@/utils/toast";
 import Swal from "sweetalert2";
+import Vue3Dropzone from "@/lib/vue3-dropzone/src/index.js";
+import "@/lib/vue3-dropzone/src/style.css";
+import VueEasyLightbox from "vue-easy-lightbox";
+
+const components = { VueEasyLightbox };
 
 const props = defineProps({
   mode: { type: String, default: "edit" }, // "edit" or "create"
@@ -573,6 +709,72 @@ const router = useRouter();
 const loading = ref(true);
 const saving = ref(false);
 const error = ref(""); // Needed for template error state
+const fieldErrors = ref({}); // For Django forms validation
+
+const getFieldError = (field) => {
+  if (fieldErrors.value && fieldErrors.value[field]) {
+    const errors = fieldErrors.value[field];
+    return Array.isArray(errors) ? errors[0] : errors;
+  }
+  return null;
+};
+
+// Photo Upload State
+const primaryFiles = ref([]);
+const primaryPreviews = ref([]);
+
+const galleryFiles = ref([]);
+const galleryPreviews = ref([]);
+const existingImages = ref([]);
+const removedImages = ref([]);
+
+const lightboxVisible = ref(false);
+const lightboxIndex = ref(0);
+
+const MEDIA_BASE =
+  import.meta.env.VITE_API_MEDIA_BASE_URL || "http://localhost:8000/media/";
+
+function showLightbox(index) {
+  lightboxIndex.value = index;
+  lightboxVisible.value = true;
+}
+
+function fullImageUrl(path) {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${MEDIA_BASE}${path}`;
+}
+
+function handleGalleryError(files) {
+  error.value = `Some files were rejected: ${files.map((f) => f.name).join(", ")}`;
+}
+
+function syncRemovedImages(newPreviews) {
+  const removed = existingImages.value.filter(
+    (img) => !newPreviews.includes(img.url),
+  );
+
+  for (const r of removed) {
+    if (!removedImages.value.includes(r.id)) {
+      removedImages.value.push(r.id);
+    }
+  }
+
+  galleryPreviews.value = newPreviews;
+}
+
+async function uploadGalleryImages(propertyId) {
+  if (!galleryFiles.value.length) return;
+  for (const { file } of galleryFiles.value) {
+    const fd = new FormData();
+    fd.append("property", propertyId);
+    fd.append("image", file);
+    await api.post("/api/properties/property-images/", fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  }
+  galleryFiles.value = [];
+}
 
 // AI Text Generation state
 const generatingAI = ref(false);
@@ -609,6 +811,8 @@ const property = ref({
   available_from: "",
   contract_type: "none",
   is_active: false,
+  image_url: null,
+  images: [],
 });
 
 // Price formatting
@@ -641,6 +845,9 @@ const selectedCount = computed(() => {
   return agencies.value.filter((agency) => agency.selected).length;
 });
 
+// Toggle attachments
+const includeAttachments = ref(true);
+
 // Load property from API (only in edit mode)
 async function loadProperty() {
   // Skip loading in create mode
@@ -662,6 +869,15 @@ async function loadProperty() {
     const { data } = await api.get(`/api/properties/${props.id}/`);
     property.value = { ...data };
     originalProperty.value = { ...data };
+
+    // Process existing images
+    property.value.image_url = data.image ? fullImageUrl(data.image) : null;
+    property.value.images = data.images || [];
+    existingImages.value = (data.images || []).map((img) => ({
+      id: img.id,
+      url: fullImageUrl(img.image),
+    }));
+    galleryPreviews.value = existingImages.value.map((img) => img.url);
   } catch (err) {
     console.error("Failed to load property:", err);
     error.value = "Failed to load property. Please try again.";
@@ -674,6 +890,7 @@ async function loadProperty() {
 async function saveChanges() {
   saving.value = true;
   error.value = "";
+  fieldErrors.value = {};
 
   try {
     // Prepare data for API
@@ -694,27 +911,61 @@ async function saveChanges() {
       is_active: property.value.is_active,
     };
 
+    const fd = new FormData();
+    for (const [key, value] of Object.entries(payload)) {
+      if (value !== null && value !== "") {
+        fd.append(key, value);
+      }
+    }
+
+    // Add primary image if a new one is selected
+    if (primaryFiles.value && primaryFiles.value.length > 0) {
+      fd.append("image", primaryFiles.value[0].file);
+    } else if (props.mode === 'create') {
+      // Compulsory primary image check for create context
+      showWarning("Primary image is required.");
+      saving.value = false;
+      return;
+    }
+
     let savedPropertyId;
 
     if (props.mode === 'create') {
       // Create new property
-      const { data } = await api.post('/api/properties/', payload);
+      const { data } = await api.post('/api/properties/', fd, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
       savedPropertyId = data.id;
-      showSuccess("Property created successfully!");
     } else {
       // Update existing property
-      await api.put(`/api/properties/${props.id}/`, payload);
+      await api.put(`/api/properties/${props.id}/`, fd, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
       savedPropertyId = props.id;
       // Update original for future discards
       originalProperty.value = { ...property.value };
-      showSuccess("Property saved successfully!");
+
+      // Handle deleted images
+      for (const id of removedImages.value) {
+        await api.delete(`/api/properties/property-images/${id}/`);
+      }
     }
+
+    // Upload gallery photos
+    await uploadGalleryImages(savedPropertyId);
+
+    showSuccess(props.mode === 'create' ? "Property created successfully!" : "Property saved successfully!");
 
     // Navigate to detail view
     router.push(`/properties/${savedPropertyId}`);
   } catch (err) {
     console.error("Failed to save property:", err);
-    showError(props.mode === 'create' ? "Failed to create property. Please try again." : "Failed to save changes. Please try again.");
+    if (err.response && err.response.status === 400 && err.response.data) {
+      fieldErrors.value = err.response.data;
+      showError("Please check the form for errors.");
+    } else {
+      showError(props.mode === 'create' ? "Failed to create property. Please try again." : "Failed to save changes. Please try again.");
+    }
   } finally {
     saving.value = false;
   }
@@ -927,7 +1178,8 @@ async function sendToAgencies() {
         agency: agency.id,
         subject: emailSubject.value || "Property Inquiry",
         initial_message: messageToSend,
-        status: "sent"
+        status: "sent",
+        include_attachments: includeAttachments.value
       });
     }
     showSuccess(`Email sent to ${selectedAgencies.length} ${selectedAgencies.length === 1 ? 'agency' : 'agencies'}!`);
